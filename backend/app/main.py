@@ -4,7 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import uvicorn, os
 from app.config import settings
-from app.database import engine, Base
+from app.database import engine, Base, ensure_schema_upgrades
+import app.models  # noqa: F401 -- registers every model on Base.metadata
 from app.routers import auth, projects, simulations, files, geometries
 from app.services.i18n.translator import TranslationService
 @asynccontextmanager
@@ -13,6 +14,7 @@ async def lifespan(app):
     os.makedirs(settings.RESULTS_DIR, exist_ok=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await ensure_schema_upgrades(conn)
     app.state.i18n = TranslationService(settings.DEFAULT_LANG)
     yield
     await engine.dispose()

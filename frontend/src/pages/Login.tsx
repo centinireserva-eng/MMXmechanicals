@@ -1,47 +1,109 @@
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { AuthAPI } from '../services/api';
+import { ArrowRight, Eye, EyeOff, Gauge, Layers3, Lock, Mail, ShieldCheck, UserPlus } from 'lucide-react';
+import { AuthAPI, getErrorMessage } from '../services/api';
+import FlowHero3D from '../components/FlowHero3D';
+import LogoMark from '../components/LogoMark';
+
 export default function Login() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState('login');
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState(''); const [company, setCompany] = useState('');
-  const [showPwd, setShowPwd] = useState(false); const [loading, setLoading] = useState(false); const [error, setError] = useState('');
-  const handleSubmit = async (e) => {
-    e.preventDefault(); setLoading(true); setError('');
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [company, setCompany] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
     try {
-      const { data } = mode === 'login' ? await AuthAPI.login(email, password) : await AuthAPI.register(email, password, fullName, company);
-      localStorage.setItem('mmx_token', data.access_token); localStorage.setItem('mmx_refresh', data.refresh_token); navigate('/');
-    } catch (err) { setError(err.response?.data?.detail || 'Erro'); } finally { setLoading(false); }
+      const { data } = mode === 'login'
+        ? await AuthAPI.login(email, password)
+        : await AuthAPI.register(email, password, fullName, company);
+      localStorage.setItem('mmx_token', data.access_token);
+      localStorage.setItem('mmx_refresh', data.refresh_token);
+      navigate('/');
+    } catch (err: any) {
+      setError(getErrorMessage(err, 'Não foi possível autenticar. Verifique seus dados e tente novamente.'));
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
-    <div className="min-h-screen bg-mmx-bg flex">
-      <div className="fixed inset-0 grid-bg opacity-20 pointer-events-none" />
-      <div className="hidden lg:flex flex-col justify-center w-1/2 px-16 relative z-10">
-        <div className="flex items-center gap-3 mb-8"><div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-mmx-accent to-mmx-accent-2 flex items-center justify-center font-bold text-mmx-bg text-xl">MX</div><h1 className="font-display font-bold text-2xl">MMX <span className="gradient-text">Mechanics</span></h1></div>
-        <h2 className="font-display text-4xl font-bold mb-4">Fluidodinamica Computacional<br /><span className="gradient-text">na velocidade da GPU</span></h2>
-        <p className="text-mmx-muted text-lg mb-8 max-w-md">Simulacao de escoamento e transferencia de calor com Lattice Boltzmann Method acelerado por CUDA.</p>
-      </div>
-      <div className="flex-1 flex items-center justify-center px-6 relative z-10">
-        <div className="w-full max-w-md">
-          <div className="glass-strong rounded-3xl p-8">
-            <div className="flex gap-2 mb-6 p-1 bg-mmx-surface rounded-xl">
-              <button onClick={() => setMode('login')} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'login' ? 'bg-mmx-accent text-mmx-bg' : 'text-mmx-muted'}`}>Entrar</button>
-              <button onClick={() => setMode('register')} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${mode === 'register' ? 'bg-mmx-accent text-mmx-bg' : 'text-mmx-muted'}`}>Criar Conta</button>
-            </div>
-            {error && <div className="mb-4 p-3 rounded-xl bg-mmx-danger/10 border border-mmx-danger/20 text-mmx-danger text-sm">{error}</div>}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'register' && <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nome completo" className="input-mmx" required />}
-              {mode === 'register' && <input type="text" value={company} onChange={e => setCompany(e.target.value)} placeholder="Empresa" className="input-mmx" />}
-              <div className="relative"><Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-mmx-muted" /><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" className="input-mmx pl-10" required /></div>
-              <div className="relative"><Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-mmx-muted" /><input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Senha" className="input-mmx pl-10 pr-10" required minLength={6} /><button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-mmx-muted">{showPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button></div>
-              <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">{loading ? <div className="w-5 h-5 rounded-full border-2 border-mmx-bg/30 border-t-mmx-bg animate-spin" /> : <>{mode === 'login' ? 'Entrar' : 'Criar Conta'} <ArrowRight size={18} /></>}</button>
-            </form>
-          </div>
-          <p className="text-center text-xs text-mmx-muted mt-6">MMX Mechanics v1.0.0 - Figsmor Engenharia</p>
+    <main className="login-shell">
+      <section className="login-story">
+        <LogoMark className="login-brand" />
+        <div className="login-copy">
+          <h1>Simulação de fluidos<br /><span>na velocidade da GPU.</span></h1>
+          <p>Prepare geometrias, configure a física e acompanhe campos de escoamento em uma única bancada de engenharia.</p>
         </div>
-      </div>
-    </div>
+
+        <div className="login-capabilities" aria-label="Capacidades da plataforma">
+          <div><Gauge size={18} /><span><strong>GPU CUDA</strong>Processamento paralelo</span></div>
+          <div><Layers3 size={18} /><span><strong>Multi-projeto</strong>Contextos isolados</span></div>
+          <div><ShieldCheck size={18} /><span><strong>Dados íntegros</strong>Fluxo verificável</span></div>
+        </div>
+
+        <FlowHero3D />
+        <div className="login-scene-meta">
+          <span>LBM D3Q19</span><span>WebGL</span><span>Prévia interativa</span>
+        </div>
+      </section>
+
+      <section className="login-access" aria-label="Acesso à plataforma">
+        <div className="login-panel">
+          <div className="login-tabs" role="tablist" aria-label="Escolha o tipo de acesso">
+            <button type="button" role="tab" aria-selected={mode === 'login'} onClick={() => { setMode('login'); setError(''); }}>
+              <ArrowRight size={17} /> Entrar
+            </button>
+            <button type="button" role="tab" aria-selected={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
+              <UserPlus size={17} /> Criar conta
+            </button>
+          </div>
+
+          <div className="login-form-heading">
+            <h2>{mode === 'login' ? 'Bem-vindo de volta' : 'Comece uma nova bancada'}</h2>
+            <p>{mode === 'login' ? 'Entre na sua conta para continuar.' : 'Crie o acesso da sua equipe de engenharia.'}</p>
+          </div>
+
+          {error && <div className="form-error" role="alert">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === 'register' && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="field-label">Nome completo
+                  <input type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Seu nome" className="input-mmx" autoComplete="name" required />
+                </label>
+                <label className="field-label">Empresa
+                  <input type="text" value={company} onChange={(event) => setCompany(event.target.value)} placeholder="Sua empresa" className="input-mmx" autoComplete="organization" />
+                </label>
+              </div>
+            )}
+
+            <label className="field-label">E-mail
+              <span className="input-with-icon"><Mail size={18} /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="seu@email.com" className="input-mmx" autoComplete="email" required /></span>
+            </label>
+
+            <label className="field-label">Senha
+              <span className="input-with-icon"><Lock size={18} /><input type={showPwd ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Mínimo de 6 caracteres" className="input-mmx" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={6} />
+                <button type="button" onClick={() => setShowPwd((value) => !value)} aria-label={showPwd ? 'Ocultar senha' : 'Mostrar senha'}>{showPwd ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+              </span>
+            </label>
+
+            <button type="submit" disabled={loading} className="btn-primary login-submit">
+              {loading ? <span className="button-loader" aria-label="Autenticando" /> : <>{mode === 'login' ? 'Entrar na plataforma' : 'Criar conta'}<ArrowRight size={18} /></>}
+            </button>
+          </form>
+
+          <p className="login-legal">Ao continuar, você concorda com os Termos de Uso e a Política de Privacidade da plataforma.</p>
+        </div>
+        <div className="login-build"><span>MMX Mechanics</span><span>build v1.0.0</span></div>
+      </section>
+    </main>
   );
 }

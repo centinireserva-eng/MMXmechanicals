@@ -16,7 +16,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div><h1 className="font-display text-2xl font-bold">{t('dashboard.welcome')}, Francisco</h1><p className="text-mmx-muted text-sm mt-1">{t('dashboard.subtitle')}</p></div>
         <div className="flex gap-2">
-          <button onClick={() => navigate('/library')} className="btn-ghost flex items-center gap-2 text-sm"><Upload size={16} /> {t('dashboard.importGeometry')}</button>
+          <button onClick={() => navigate('/geometry/upload')} className="btn-ghost flex items-center gap-2 text-sm"><Upload size={16} /> {t('dashboard.importGeometry')}</button>
           <button onClick={() => navigate('/simulation/new')} className="btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> {t('dashboard.newSimulation')}</button>
         </div>
       </div>

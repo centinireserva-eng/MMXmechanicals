@@ -20,7 +20,7 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(req, db=Depends(get_db)):
+async def register(req: RegisterRequest, db=Depends(get_db)):
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none(): raise HTTPException(400, "Email ja cadastrado")
     user = User(email=req.email, full_name=req.full_name, company=req.company, hashed_password=hash_password(req.password), plan=PlanType.FREE)
@@ -29,7 +29,7 @@ async def register(req, db=Depends(get_db)):
     await db.refresh(user)
     return TokenResponse(access_token=create_access_token(user.id, {"email": user.email, "plan": user.plan.value}), refresh_token=create_refresh_token(user.id))
 @router.post("/login", response_model=TokenResponse)
-async def login(req, db=Depends(get_db)):
+async def login(req: LoginRequest, db=Depends(get_db)):
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
     if not user or not verify_password(req.password, user.hashed_password): raise HTTPException(401, "Email ou senha invalidos")
@@ -39,7 +39,7 @@ async def login(req, db=Depends(get_db)):
 async def get_me(user=Depends(get_current_user)):
     return {"id": user.id, "email": user.email, "full_name": user.full_name, "company": user.company, "plan": user.plan.value, "simulations_used": user.simulations_used, "sim_limit": user.sim_limit, "grid_limit": user.grid_limit}
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(body, db=Depends(get_db)):
+async def refresh_token(body: dict, db=Depends(get_db)):
     refresh = body.get("token") or body.get("refresh_token")
     if not refresh: raise HTTPException(400, "Refresh token ausente")
     payload = decode_token(refresh)

@@ -27,3 +27,9 @@ class User(Base):
     @property
     def sim_limit(self):
         return {"free": 5, "pro": 100, "enterprise": 999999}.get(self.plan.value, 5)
+    @property
+    def vertex_limit(self):
+        # Caps trimesh/point-cloud memory use at import time, independent of
+        # the solver's own grid_limit (voxelization already downsamples any
+        # mesh to the target resolution regardless of source vertex count).
+        return {"free": 500_000, "pro": 5_000_000, "enterprise": 20_000_000}.get(self.plan.value, 500_000)

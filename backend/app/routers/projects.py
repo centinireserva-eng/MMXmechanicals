@@ -16,7 +16,7 @@ async def list_projects(user=Depends(get_current_user), db=Depends(get_db)):
     result = await db.execute(select(Project).where(Project.user_id == user.id))
     return [{"id": p.id, "name": p.name, "description": p.description} for p in result.scalars().all()]
 @router.post("/")
-async def create_project(req, user=Depends(get_current_user), db=Depends(get_db)):
+async def create_project(req: ProjectCreate, user=Depends(get_current_user), db=Depends(get_db)):
     project = Project(id=str(uuid.uuid4()), name=req.name, description=req.description, user_id=user.id)
     db.add(project)
     await db.commit()

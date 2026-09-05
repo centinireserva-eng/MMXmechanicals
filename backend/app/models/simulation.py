@@ -15,6 +15,11 @@ class Simulation(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     project_id = Column(String(36), ForeignKey("projects.id"), nullable=False)
+    # Durable link to the imported scenario this run used (nullable: the
+    # built-in synthetic presets have no Geometry row). This is what lets
+    # results reopen the *same* geometry instead of a generic stand-in --
+    # see docs/geometry continuity requirement.
+    geometry_id = Column(String(36), ForeignKey("geometries.id"), nullable=True)
     solver_type = Column(String(50), default="lbm_d3q19")
     grid_size_x = Column(Integer, nullable=False)
     grid_size_y = Column(Integer, nullable=False)
@@ -43,3 +48,4 @@ class Simulation(Base):
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     project = relationship("Project", back_populates="simulations")
+    geometry = relationship("Geometry")

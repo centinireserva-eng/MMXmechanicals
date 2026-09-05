@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.db
+.pytest_cache/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/output/
+.vite/
+
+# Env / secrets
+.env
+.env.*
+
+# Editor / OS
+.DS_Store
+
+# Misc tooling output
+.playwright-cli/
+output/
