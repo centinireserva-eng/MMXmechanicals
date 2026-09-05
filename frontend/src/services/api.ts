@@ -9,7 +9,8 @@ api.interceptors.request.use(config => {
   return config;
 });
 api.interceptors.response.use((res) => res, async (err) => {
-  if (err.response?.status === 401 && !err.config._retry) {
+  const isRefreshRequest = err.config?.url === '/auth/refresh';
+  if (err.response?.status === 401 && !err.config?._retry && !isRefreshRequest) {
     err.config._retry = true;
     const refreshToken = localStorage.getItem('mmx_refresh');
     if (refreshToken) {
@@ -18,7 +19,11 @@ api.interceptors.response.use((res) => res, async (err) => {
         localStorage.setItem('mmx_token', data.access_token);
         err.config.headers.Authorization = `Bearer ${data.access_token}`;
         return api(err.config);
-      } catch { window.location.href = '/login'; }
+      } catch {
+        localStorage.removeItem('mmx_token');
+        localStorage.removeItem('mmx_refresh');
+        if (window.location.pathname !== '/login') window.location.href = '/login';
+      }
     }
   }
   return Promise.reject(err);

@@ -14,6 +14,30 @@ import numpy as np, os, uuid, json, logging
 from datetime import datetime
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+@router.get("/")
+async def list_simulations(user=Depends(get_current_user), db=Depends(get_db)):
+    result = await db.execute(
+        select(Simulation)
+        .join(Project)
+        .where(Project.user_id == user.id)
+        .order_by(Simulation.created_at.desc())
+    )
+    simulations = result.scalars().all()
+    return [
+        {
+            "id": sim.id,
+            "name": sim.name,
+            "status": sim.status.value,
+            "progress": sim.progress,
+            "geometry_id": sim.geometry_id,
+            "grid_size": f"{sim.grid_size_x}x{sim.grid_size_y}x{sim.grid_size_z}",
+            "solver_type": sim.solver_type,
+            "created_at": sim.created_at,
+        }
+        for sim in simulations
+    ]
+
 @router.post("/")
 async def create_simulation(body: dict, user=Depends(check_simulation_limit), db=Depends(get_db)):
     project_id = body["project_id"]
